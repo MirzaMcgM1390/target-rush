@@ -1,9 +1,236 @@
-index.html# target-rush
-Target Rush - A fast-paced browser target clicking game 🎯
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Target Rush 🎯</title>
+
+<style>
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial,sans-serif;
+  background:#080b12;
+  color:white;
+}
+#game{
+  position:relative;
+  width:100%;
+  height:100%;
+  background:
+    radial-gradient(circle at center,#17213a 0%,#080b12 70%);
+  cursor:crosshair;
+}
+#top{
+  position:absolute;
+  top:15px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:12px;
+  z-index:5;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.box{
+  min-width:105px;
+  padding:10px 15px;
+  border-radius:14px;
+  background:rgba(20,27,45,.9);
+  border:1px solid #34405e;
+  text-align:center;
+  box-shadow:0 5px 20px #0008;
+}
+.label{
+  font-size:12px;
+  color:#9ca9c8;
+}
+.value{
+  font-size:22px;
+  font-weight:bold;
+  margin-top:3px;
+}
+#target{
+  position:absolute;
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  display:none;
+  transform:translate(-50%,-50%);
+  background:
+    radial-gradient(circle,
+      #fff 0 10%,
+      #e53935 11% 30%,
+      #fff 31% 48%,
+      #e53935 49% 68%,
+      #fff 69% 100%);
+  box-shadow:0 0 25px #ff334d;
+  user-select:none;
+}
+#target:active{
+  transform:translate(-50%,-50%) scale(.88);
+}
+#startScreen,#gameOver{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  background:rgba(4,7,14,.82);
+  backdrop-filter:blur(8px);
+  z-index:10;
+}
+.panel{
+  width:min(90%,450px);
+  padding:35px 25px;
+  border-radius:25px;
+  background:#111827;
+  border:1px solid #34405e;
+  box-shadow:0 15px 50px #000b;
+}
+h1{
+  margin:0 0 10px;
+  font-size:45px;
+}
+p{
+  color:#aeb9d0;
+  line-height:1.6;
+}
+button{
+  border:0;
+  border-radius:14px;
+  padding:14px 30px;
+  font-size:18px;
+  font-weight:bold;
+  color:white;
+  background:linear-gradient(135deg,#ff3155,#ff7a18);
+  cursor:pointer;
+  box-shadow:0 8px 25px #ff315555;
+}
+button:active{
+  transform:scale(.96);
+}
+#gameOver{display:none}
+.bigScore{
+  font-size:50px;
+  font-weight:bold;
+  margin:10px 0 20px;
+  color:#ff526d;
+}
+#hint{
+  position:absolute;
+  bottom:15px;
+  left:50%;
+  transform:translateX(-50%);
+  color:#687694;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+  <div id="top">
+    <div class="box">
+      <div class="label">SCORE</div>
+      <div id="score" class="value">0</div>
+    </div>
+
+    <div class="box">
+      <div class="label">TIME</div>
+      <div id="time" class="value">30</div>
+    </div>
+
+    <div class="box">
+      <div class="label">BEST</div>
+      <div id="best" class="value">0</div>
+    </div>
+  </div>
+
+  <div id="target"></div>
+
+  <div id="hint">Tap / Click the targets as fast as you can!</div>
+
+  <div id="startScreen">
+    <div class="panel">
+      <h1>🎯 Target Rush</h1>
+      <p>
+        هدف‌ها را هرچه سریع‌تر بزن!<br>
+        ۳۰ ثانیه وقت داری رکورد خودت را بشکنی.
+      </p>
+      <button onclick="startGame()">START GAME</button>
+    </div>
+  </div>
+
+  <div id="gameOver">
+    <div class="panel">
+      <h1>🏁 Game Over</h1>
+      <div class="bigScore" id="finalScore">0</div>
+      <p id="resultText"></p>
+      <button onclick="startGame()">PLAY AGAIN</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const game = document.getElementById("game");
+const target = document.getElementById("target");
+const scoreEl = document.getElementById("score");
+const timeEl = document.getElementById("time");
+const bestEl = document.getElementById("best");
+const startScreen = document.getElementById("startScreen");
+const gameOver = document.getElementById("gameOver");
+const finalScore = document.getElementById("finalScore");
+const resultText = document.getElementById("resultText");
+
+let score = 0;
+let time = 30;
+let playing = false;
+let timer;
+let targetSize = 80;
+
+let best = Number(localStorage.getItem("targetRushBest") || 0);
+bestEl.textContent = best;
+
+function startGame(){
+  clearInterval(timer);
+
+  score = 0;
+  time = 30;
+  targetSize = 80;
+  playing = true;
+
+  scoreEl.textContent = score;
+  timeEl.textContent = time;
+
+  startScreen.style.display = "none";
+  gameOver.style.display = "none";
+
+  target.style.display = "block";
+
+  moveTarget();
+
+  timer = setInterval(() => {
+    time--;
+    timeEl.textContent = time;
+
+    if(time <= 0){
+      endGame();
+    }
+  },1000);
+}
+
 function moveTarget(){
 
-  const padding = 25;
-  const topSpace = 155;
+  const padding = 20;
+  const topSpace = 90;
 
   const minX = targetSize / 2 + padding;
   const maxX = game.clientWidth - targetSize / 2 - padding;
@@ -14,6 +241,60 @@ function moveTarget(){
   const x = Math.random() * (maxX - minX) + minX;
   const y = Math.random() * (maxY - minY) + minY;
 
+  target.style.width = targetSize + "px";
+  target.style.height = targetSize + "px";
   target.style.left = x + "px";
   target.style.top = y + "px";
 }
+
+function hitTarget(e){
+  if(!playing) return;
+
+  e.preventDefault();
+
+  score++;
+  scoreEl.textContent = score;
+
+  if(score > best){
+    best = score;
+    bestEl.textContent = best;
+    localStorage.setItem("targetRushBest",best);
+  }
+
+  // سخت‌تر شدن بازی
+  if(score % 5 === 0 && targetSize > 35){
+    targetSize -= 5;
+  }
+
+  moveTarget();
+}
+
+function endGame(){
+  playing = false;
+  clearInterval(timer);
+
+  target.style.display = "none";
+
+  finalScore.textContent = score;
+
+  if(score >= best && score > 0){
+    resultText.textContent = "🔥 رکورد جدید! عالی زدی!";
+  }else{
+    resultText.textContent =
+      "امتیازت " + score + " شد. دوباره امتحان کن!";
+  }
+
+  gameOver.style.display = "flex";
+}
+
+target.addEventListener("pointerdown",hitTarget);
+
+document.addEventListener("keydown",e=>{
+  if(e.key === "Enter" && !playing){
+    startGame();
+  }
+});
+</script>
+
+</body>
+  </html>
