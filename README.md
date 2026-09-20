@@ -1,2 +1,19 @@
 # target-rush
 Target Rush - A fast-paced browser target clicking game 🎯
+function moveTarget(){
+
+  const padding = 25;
+  const topSpace = 155;
+
+  const minX = targetSize / 2 + padding;
+  const maxX = game.clientWidth - targetSize / 2 - padding;
+
+  const minY = topSpace + targetSize / 2;
+  const maxY = game.clientHeight - targetSize / 2 - padding;
+
+  const x = Math.random() * (maxX - minX) + minX;
+  const y = Math.random() * (maxY - minY) + minY;
+
+  target.style.left = x + "px";
+  target.style.top = y + "px";
+}
